@@ -69,12 +69,12 @@
                     success: function (data) {
                         if (data.success) {
                             showMessage('Адрес добавлен');
-                            toggleBtns();
                             $('#email').append('<li>' + $('#txt').val() + '</li>');
                         }
                         else {
                             showMessage('Ошибка: ' + data.message);
                         }
+                        toggleBtns();
                     }
                 });
             });
