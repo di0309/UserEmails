@@ -2,30 +2,107 @@
     ViewBag.Title = "Home Page";
 }
 
-<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
-</div>
+<h3>Выберите пользователя</h3>
+@Html.DropDownList("User", ViewBag.Users as SelectList, new { id = "user" })
+<h3>Почтовые адреса</h3>
+<ul id="email" name="Email">
+    @foreach (var item in ViewBag.Emails)
+    {
+        <li>@item.Mail</li>
+    }
+</ul>
+<button id="new" class="show">Добавить новый адрес</button>
+<input type="text" id="txt" class="hide elem" />
+<button id="add" class="hide elem" disabled>Сохранить</button>
+<button id="cancel" class="hide elem">Отмена</button>
+<p id="message" class="hide"></p>
 
-<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-    </div>
-</div>
+@section scripts{
+    <script type="text/javascript">
+        $(function () {
+
+            $('#user').change(function () {
+                var id = $(this).val();
+                $.ajax({
+                    type: 'GET',
+                    url: '@Url.Action("GetEmails")/' + id,
+                    success: function (data) {
+                        $('#email').replaceWith(data);
+                    }
+                });
+            });
+
+            function toggleBtns() {
+                $('.elem').each(function (elem) {
+                    if ($(this).hasClass('hide')) {
+                        $('#new').removeClass('show').addClass('hide');
+                        $(this).removeClass('hide').addClass('show');
+                    }
+                    else {
+                        $('#new').removeClass('hide').addClass('show');
+                        $(this).removeClass('show').addClass('hide');
+                    }
+                });
+            }
+
+            function showMessage(message) {
+                $('#message').show().text(message);
+                setTimeout(function () {
+                    $('#message').hide().text('');
+                }, 1000);
+            }
+
+            $('#new').click(function () {
+                toggleBtns();
+            });
+
+            $('#add').click(function () {
+                var email = new Object();
+                email.UserId = $('#user').val();
+                email.Mail = $('#txt').val();
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("AddEmail")',
+                    data: JSON.stringify(email),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.success) {
+                            showMessage('Адрес добавлен');
+                            toggleBtns();
+                            $('#email').append('<li>' + $('#txt').val() + '</li>');
+                        }
+                        else {
+                            showMessage('Ошибка: ' + data.message);
+                        }
+                    }
+                });
+            });
+
+            $('#cancel').click(function () {
+                toggleBtns();
+            });
+
+            $('#txt').on('input', function () {
+                var pattern = /^([a-z0-9_\.-])+@@[a-z0-9-]+\.([a-z]{2,4}\.)?[a-z]{2,4}$/i;
+
+                if (pattern.test($(this).val())) {
+                    $('#add').prop('disabled', false);
+                }
+                else {
+                    $('#add').prop('disabled', true);
+                }
+            });
+        });
+    </script>
+}
+@section styles{
+    <style type="text/css">
+        .hide{
+            display: none;
+        }
+        .show{
+            display: inline;
+        }
+    </style>
+}

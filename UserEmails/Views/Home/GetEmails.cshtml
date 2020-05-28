@@ -1,0 +1,8 @@
+﻿@model IEnumerable<UserEmails.Models.Email>
+
+<ul id="email" name="Email">
+        @foreach (var item in Model)
+        {
+            <li value="@item.Id">@item.Mail</li>
+        }
+</ul>
